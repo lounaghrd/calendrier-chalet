@@ -1,4 +1,18 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calendrier St Marcel</title>
+<meta name="description" content="Le calendrier partagé du chalet de St Marcel.">
+<meta name="theme-color" content="#2E5A45">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="St Marcel">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;700&family=Figtree:wght@400;500;600;700&display=swap">
@@ -52,7 +66,11 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+img { max-width: 100%; }
 body {
+  margin: 0;
   background: var(--snow);
   color: var(--ink);
   font-family: var(--font-body);
@@ -259,6 +277,8 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
   @keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } }
 }
 </style>
+</head>
+<body>
 
 <div class="app">
   <header class="masthead">
@@ -394,10 +414,15 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+  // Firebase web config (public by design; access is controlled by firestore.rules)
+  var FIREBASE_CONFIG = {};
+</script>
 <script>
 (function () {
   "use strict";
-  document.documentElement.lang = "fr";
 
   var MAX = 14;
   var MAX_NIGHTS = 92;
@@ -696,9 +721,8 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
 
   function writeErrorMessage(err) {
     var code = err && err.code;
-    if (code === "invalid_argument") return "Vous n’avez pas le droit de modifier le calendrier. Demandez à Louna de vous inviter comme « Éditeur ».";
-    if (code === "quota_exceeded") return "Le calendrier a atteint sa taille maximale. Supprimez d’anciens séjours puis réessayez.";
-    if (code === "resource_exhausted") return "Trop de modifications d’un coup. Attendez quelques secondes puis réessayez.";
+    if (code === "permission-denied") return "Le séjour a été refusé : vérifiez les dates et le nombre de personnes, puis réessayez.";
+    if (code === "resource-exhausted") return "Le calendrier a reçu trop de modifications aujourd’hui. Réessayez demain.";
     return "Le séjour n’a pas pu être enregistré. Vérifiez votre connexion et réessayez.";
   }
 
@@ -727,7 +751,7 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
       }).join(", ");
       return showError("Pas assez de place pour " + state.people + " personnes : " + list + (c.over.length > 4 ? "…" : "") + ". Le chalet accueille " + MAX + " personnes au maximum.");
     }
-    if (!state.db) return showError("Les réservations ne sont pas disponibles ici. Ouvrez le calendrier depuis son lien Claude.");
+    if (!state.db) return showError("Le calendrier n’est pas connecté. Vérifiez votre connexion puis rechargez la page.");
 
     var now = new Date().toISOString();
     var data = {
@@ -773,7 +797,7 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
       toast("Séjour supprimé");
     }).catch(function (err) {
       $("f-confirm").hidden = true; $("f-actions").hidden = false;
-      showError(err && err.code === "invalid_argument" ? writeErrorMessage(err) : "Le séjour n’a pas pu être supprimé. Réessayez.");
+      showError("Le séjour n’a pas pu être supprimé. Vérifiez votre connexion et réessayez.");
     }).then(function () { btn.disabled = false; });
   }
 
@@ -847,29 +871,28 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
 
   function connect() {
     showBanner("Chargement des réservations…");
-    var c = window.claude;
-    if (!c || typeof c.use !== "function") {
-      showBanner("Les réservations ne sont pas disponibles ici. Ouvrez le calendrier depuis son lien Claude.");
+    if (!FIREBASE_CONFIG.projectId) {
+      showBanner("Le calendrier n’est pas encore relié à sa base de réservations.");
       return;
     }
-    c.use("db").then(function (db) {
-      if (!db) {
-        showBanner("Les réservations ne sont pas disponibles. Connectez-vous à votre compte Claude puis rouvrez le lien.");
-        return;
-      }
-      state.db = db;
-      db.collection("bookings").onSnapshot(function (snap) {
-        state.bookings = snap.docs.map(clean).filter(Boolean);
-        state.dbReady = true;
-        showBanner("");
-        renderMonth();
-        if (state.openDay != null) renderDay();
-        if ($("form-dialog").open) updateCapacityHint();
-      }, function () {
-        showBanner("La connexion au calendrier a été interrompue. Rechargez la page.");
-      });
+    var db;
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.firestore();
+    } catch (e) {
+      showBanner("Le calendrier n’a pas pu démarrer. Rechargez la page.");
+      return;
+    }
+    state.db = db;
+    db.collection("bookings").onSnapshot(function (snap) {
+      state.bookings = snap.docs.map(clean).filter(Boolean);
+      state.dbReady = true;
+      showBanner("");
+      renderMonth();
+      if (state.openDay != null) renderDay();
+      if ($("form-dialog").open) updateCapacityHint();
     }, function () {
-      showBanner("Les réservations ne sont pas disponibles. Rechargez la page.");
+      showBanner("La connexion au calendrier a été interrompue. Rechargez la page.");
     });
   }
 
@@ -881,3 +904,5 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
   if (!state.me) openWho(false);
 })();
 </script>
+</body>
+</html>
