@@ -218,13 +218,17 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
   width: 100%; border: 1px solid var(--line); background: var(--snow); border-radius: 10px; padding: 10px 12px; font-size: 16px; min-width: 0;
 }
 .field textarea { resize: vertical; min-height: 70px; }
+/* iPhone: native date fields ignore width and overflow their column without this */
+.field input[type="date"] { -webkit-appearance: none; appearance: none; display: block; max-width: 100%; min-height: 44px; text-align: left; }
+.field input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .row2 > * { min-width: 0; }
-.who-pick { display: flex; gap: 8px; flex-wrap: wrap; }
-.who-pick label { margin: 0; }
+.who-pick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.who-pick label { margin: 0; min-width: 0; }
+@media (max-width: 520px) { .who-pick { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .who-pick input { position: absolute; opacity: 0; pointer-events: none; }
 .who-pick label > span {
-  display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px;
+  display: flex; width: 100%; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px;
   font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer; background: var(--surface);
 }
 .who-pick input:checked + span { border-color: var(--pc); background: color-mix(in srgb, var(--pc) 14%, var(--surface)); box-shadow: inset 0 0 0 1px var(--pc); }
