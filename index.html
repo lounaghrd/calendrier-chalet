@@ -1,0 +1,883 @@
+<title>Calendrier St Marcel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: mountain-ridge header over a full-width month grid; stays put bars span arrival-noon to departure-noon; dialogs become bottom sheets on phones. */
+:root {
+  --snow: #F4F6F2;
+  --surface: #FFFFFF;
+  --surface-2: #EEF2EC;
+  --ink: #1E2A25;
+  --muted: #5B6862;
+  --line: #DAE0D8;
+  --pine: #2E5A45;
+  --pine-ink: #FFFFFF;
+  --ridge-far: #C3D1C8;
+  --ridge-mid: #8BA697;
+  --ridge-near: #2E5A45;
+  --ridge-snow: #FFFFFF;
+  --p-parents: #A0612A;
+  --p-louna: #B23A4B;
+  --p-victor: #2C6896;
+  --bar-ink: #FFFFFF;
+  --full: #B3261E;
+  --full-bg: #FBE7E4;
+  --busy: #8A5A0B;
+  --busy-bg: #FBF0D9;
+  --focus: #2C6896;
+  --shadow: 0 10px 30px rgba(30, 42, 37, .18);
+  --font-display: "Zilla Slab", Rockwell, "Roboto Slab", Georgia, serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --snow: #111814; --surface: #19221D; --surface-2: #202B25; --ink: #E6ECE8; --muted: #9AA9A1; --line: #2B3731;
+    --pine: #86C0A1; --pine-ink: #0F1A14;
+    --ridge-far: #1C2721; --ridge-mid: #22352B; --ridge-near: #2D4A3B; --ridge-snow: #4A5E53;
+    --p-parents: #D49152; --p-louna: #E46B7C; --p-victor: #64A3D6; --bar-ink: #10170F;
+    --full: #F28B82; --full-bg: #3B1F1D; --busy: #E8B860; --busy-bg: #33280F; --focus: #64A3D6;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --snow: #111814; --surface: #19221D; --surface-2: #202B25; --ink: #E6ECE8; --muted: #9AA9A1; --line: #2B3731;
+  --pine: #86C0A1; --pine-ink: #0F1A14;
+  --ridge-far: #1C2721; --ridge-mid: #22352B; --ridge-near: #2D4A3B; --ridge-snow: #4A5E53;
+  --p-parents: #D49152; --p-louna: #E46B7C; --p-victor: #64A3D6; --bar-ink: #10170F;
+  --full: #F28B82; --full-bg: #3B1F1D; --busy: #E8B860; --busy-bg: #33280F; --focus: #64A3D6;
+  --shadow: 0 10px 30px rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--snow);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.app { max-width: 980px; margin: 0 auto; padding-inline: 16px; padding-block: 0 40px; }
+
+/* Header with mountain skyline */
+.masthead { position: relative; padding-block: 22px 0; }
+.masthead-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; position: relative; z-index: 1; }
+.brand { min-width: 0; }
+.brand h1 {
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 6vw, 38px);
+  line-height: 1.05; margin: 0; letter-spacing: -.01em; text-wrap: balance; color: var(--ink);
+}
+.brand p { margin: 4px 0 0; color: var(--muted); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; font-weight: 600; }
+.me-chip {
+  display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 999px; padding: 6px 12px 6px 8px; font-size: 14px; font-weight: 600; white-space: nowrap;
+}
+.me-chip .dot { width: 14px; height: 14px; }
+.me-chip .change { color: var(--muted); font-weight: 500; }
+.skyline { display: block; width: 100%; height: 70px; margin-top: -18px; }
+.skyline .far { fill: var(--ridge-far); }
+.skyline .mid { fill: var(--ridge-mid); }
+.skyline .near { fill: var(--ridge-near); }
+.skyline .snowcap { fill: var(--ridge-snow); }
+
+.dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.c-parents { --pc: var(--p-parents); }
+.c-louna { --pc: var(--p-louna); }
+.c-victor { --pc: var(--p-victor); }
+.dot { background: var(--pc, var(--muted)); }
+
+/* Toolbar */
+.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-block: 14px 12px; }
+.month-title { font-family: var(--font-display); font-weight: 700; font-size: 24px; margin: 0; flex: 1 1 auto; min-width: 0; }
+.icon-btn {
+  width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface);
+  display: inline-grid; place-items: center; flex: none;
+}
+.icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.btn {
+  border-radius: 10px; border: 1px solid var(--line); background: var(--surface); padding: 9px 14px;
+  font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; justify-content: center;
+}
+.btn-primary { background: var(--pine); border-color: var(--pine); color: var(--pine-ink); }
+.btn-danger { background: var(--full); border-color: var(--full); color: var(--surface); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn[disabled] { opacity: .55; cursor: default; }
+.nav-group { display: flex; gap: 6px; }
+
+/* Calendar */
+.calendar {
+  --bar-h: 18px; --bar-gap: 3px; --bar-top: 28px; --lanes: 3;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+}
+.dow { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.dow span { text-align: center; padding: 8px 0; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.dow span.we { color: var(--pine); }
+.week { position: relative; display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line); }
+.week:last-child { border-bottom: 0; }
+.day {
+  position: relative; min-width: 0; border: 0; border-right: 1px solid var(--line); background: transparent; text-align: left;
+  padding: 5px 5px 0; min-height: calc(var(--bar-top) + var(--lanes) * (var(--bar-h) + var(--bar-gap)) + 16px);
+  display: block; border-radius: 0;
+}
+.day:nth-child(7) { border-right: 0; }
+.day:hover { background: var(--surface-2); }
+.day.out .num { color: var(--muted); opacity: .55; }
+.day.past { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+.num {
+  position: absolute; top: 5px; left: 4px;
+  display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 11px; padding: 0 4px;
+  font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.day.today .num { background: var(--pine); color: var(--pine-ink); }
+.load {
+  position: absolute; top: 6px; right: 5px; display: inline-flex; align-items: center; gap: 2px;
+  font-size: 11px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1;
+  padding: 3px 5px; border-radius: 6px; background: var(--surface-2);
+}
+.load svg { width: 10px; height: 10px; fill: currentColor; }
+.load.busy { color: var(--busy); background: var(--busy-bg); }
+.load.full { color: var(--full); background: var(--full-bg); }
+.more { position: absolute; left: 6px; bottom: 2px; font-size: 10px; font-weight: 700; color: var(--muted); }
+.bars { position: absolute; inset: 0; pointer-events: none; }
+.bar {
+  position: absolute; height: var(--bar-h); background: var(--pc); color: var(--bar-ink);
+  font-size: 11px; font-weight: 600; line-height: var(--bar-h); padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bar.s { border-top-left-radius: 9px; border-bottom-left-radius: 9px; }
+.bar.e { border-top-right-radius: 9px; border-bottom-right-radius: 9px; }
+.bar:not(.s) { border-left: 1px dashed color-mix(in srgb, var(--bar-ink) 25%, transparent); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; padding-block: 14px 0; color: var(--muted); font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend .cap { margin-left: auto; }
+
+.banner { border-radius: 10px; padding: 10px 14px; margin-block: 0 12px; font-size: 14px; background: var(--busy-bg); color: var(--ink); border: 1px solid var(--line); }
+.empty-hint { text-align: center; color: var(--muted); font-size: 14px; padding-block: 12px 0; }
+
+/* Dialogs */
+dialog {
+  border: 0; padding: 0; border-radius: 16px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow);
+  width: calc(100% - 32px); max-width: 520px; max-height: calc(100% - 48px);
+}
+dialog::backdrop { background: rgba(10, 18, 14, .45); }
+.sheet { padding: 20px; display: grid; gap: 16px; }
+.sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.sheet-head h2 { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin: 0; line-height: 1.15; text-wrap: balance; min-width: 0; }
+.sheet-head .icon-btn { width: 36px; height: 36px; }
+.sheet-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.sheet-actions .grow { margin-right: auto; }
+
+.meter { display: grid; gap: 6px; }
+.meter-row { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.meter-row strong { font-variant-numeric: tabular-nums; }
+.meter-track { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.meter-fill { height: 100%; background: var(--pine); border-radius: 4px; }
+.meter-fill.busy { background: var(--busy); }
+.meter-fill.full { background: var(--full); }
+
+.stays { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.stay { border: 1px solid var(--line); border-radius: 12px; padding: 12px 12px 12px 14px; display: grid; gap: 4px; position: relative; overflow: hidden; }
+.stay::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--pc); }
+.stay-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.stay h3 { margin: 0; font-size: 16px; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.stay .meta { color: var(--muted); font-size: 13px; }
+.stay .extra { font-size: 14px; overflow-wrap: anywhere; }
+.stay .extra b { font-weight: 600; }
+.stay .btn { padding: 6px 10px; font-size: 13px; flex: none; }
+.free { color: var(--muted); margin: 0; }
+
+form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(--muted); display: block; margin-bottom: 6px; }
+.field input[type="text"], .field input[type="date"], .field textarea {
+  width: 100%; border: 1px solid var(--line); background: var(--snow); border-radius: 10px; padding: 10px 12px; font-size: 16px; min-width: 0;
+}
+.field textarea { resize: vertical; min-height: 70px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row2 > * { min-width: 0; }
+.who-pick { display: flex; gap: 8px; flex-wrap: wrap; }
+.who-pick label { margin: 0; }
+.who-pick input { position: absolute; opacity: 0; pointer-events: none; }
+.who-pick label > span {
+  display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px;
+  font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer; background: var(--surface);
+}
+.who-pick input:checked + span { border-color: var(--pc); background: color-mix(in srgb, var(--pc) 14%, var(--surface)); box-shadow: inset 0 0 0 1px var(--pc); }
+.who-pick input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--snow); }
+.stepper button { width: 44px; height: 42px; border: 0; background: transparent; font-size: 20px; font-weight: 600; }
+.stepper output { min-width: 44px; text-align: center; font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; }
+.stepper-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.hint { font-size: 13px; color: var(--muted); }
+.hint.ok { color: var(--pine); }
+.error { background: var(--full-bg); color: var(--full); border-radius: 10px; padding: 10px 12px; font-size: 14px; font-weight: 500; }
+.confirm { background: var(--full-bg); border-radius: 10px; padding: 12px; display: grid; gap: 10px; }
+.confirm p { margin: 0; font-weight: 600; color: var(--ink); }
+
+.who-sheet { text-align: center; }
+.who-sheet h2 { font-family: var(--font-display); font-size: 26px; margin: 0; }
+.who-sheet p { margin: 0; color: var(--muted); }
+.who-list { display: grid; gap: 10px; }
+.who-list button {
+  display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+  padding: 14px 16px; font-size: 17px; font-weight: 600; text-align: left;
+}
+.who-list button:hover { border-color: var(--pc); }
+.who-list .dot { width: 18px; height: 18px; }
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  background: var(--ink); color: var(--snow); padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 14px;
+  box-shadow: var(--shadow); z-index: 10; max-width: calc(100% - 32px);
+}
+
+@media (min-width: 720px) {
+  .calendar { --bar-h: 22px; --bar-gap: 4px; --bar-top: 32px; }
+  .bar { font-size: 12px; padding: 0 8px; line-height: var(--bar-h); }
+  .day { padding: 6px 8px 0; }
+  .num { font-size: 14px; top: 6px; left: 6px; }
+  .load { top: 8px; right: 8px; font-size: 12px; }
+}
+@media (max-width: 480px) {
+  .bar { padding: 0 3px; font-size: 10px; }
+  .load { padding: 2px 3px; right: 2px; top: 5px; font-size: 10px; }
+  .load svg { display: none; }
+  .day { padding: 4px 2px 0; }
+  .num { font-size: 12px; min-width: 20px; height: 20px; left: 2px; }
+  .dow span { letter-spacing: .02em; }
+  .legend .cap { margin-left: 0; }
+  dialog { width: 100%; max-width: 100%; margin: auto auto 0; border-radius: 18px 18px 0 0; max-height: 92%; }
+  .sheet { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toast { animation: rise .2s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } }
+}
+</style>
+
+<div class="app">
+  <header class="masthead">
+    <div class="masthead-top">
+      <div class="brand">
+        <h1>Calendrier St Marcel</h1>
+        <p>Le chalet · 14 couchages</p>
+      </div>
+      <button class="me-chip" id="me-chip" type="button" hidden>
+        <span class="dot" id="me-dot"></span><span id="me-name"></span><span class="change">· changer</span>
+      </button>
+    </div>
+    <svg class="skyline" viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true">
+      <path class="far" d="M0 70 L0 46 L90 30 L170 44 L260 14 L330 34 L420 22 L520 40 L610 8 L700 30 L790 20 L880 38 L1000 18 L1000 70 Z"/>
+      <path class="snowcap" d="M236 22 L260 14 L284 22 L270 21 L260 25 L250 21 Z M588 16 L610 8 L634 17 L620 16 L610 20 L600 15 Z"/>
+      <path class="mid" d="M0 70 L0 54 L120 40 L210 52 L330 32 L430 50 L540 36 L650 52 L760 34 L870 48 L1000 36 L1000 70 Z"/>
+      <path class="near" d="M0 70 L0 62 L60 56 L140 62 L230 52 L320 62 L420 56 L520 63 L620 54 L720 62 L820 55 L920 62 L1000 57 L1000 70 Z"/>
+    </svg>
+  </header>
+
+  <main>
+    <div class="banner" id="banner" role="status" hidden></div>
+    <div class="toolbar">
+      <h2 class="month-title" id="month-title" aria-live="polite"></h2>
+      <div class="nav-group">
+        <button class="btn" type="button" id="today-btn" hidden>Aujourd’hui</button>
+        <button class="icon-btn" type="button" id="prev-btn" aria-label="Mois précédent"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button class="icon-btn" type="button" id="next-btn" aria-label="Mois suivant"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <button class="btn btn-primary" type="button" id="book-btn">+ Réserver</button>
+    </div>
+
+    <div class="calendar" id="calendar">
+      <div class="dow" aria-hidden="true"><span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span class="we">Sam</span><span class="we">Dim</span></div>
+      <div id="weeks"></div>
+    </div>
+    <p class="empty-hint" id="empty-hint" hidden>Aucun séjour prévu ce mois-ci. Touchez un jour pour réserver.</p>
+
+    <div class="legend">
+      <span class="c-parents"><span class="dot"></span>Les parents</span>
+      <span class="c-louna"><span class="dot"></span>Louna</span>
+      <span class="c-victor"><span class="dot"></span>Victor</span>
+      <span class="cap">Le chiffre sur un jour = personnes présentes cette nuit-là (max. 14)</span>
+    </div>
+  </main>
+</div>
+
+<!-- Who are you -->
+<dialog id="who-dialog" aria-labelledby="who-title">
+  <div class="sheet who-sheet">
+    <h2 id="who-title">Qui êtes-vous ?</h2>
+    <p>Pour savoir qui fait les réservations sur cet appareil.</p>
+    <div class="who-list" id="who-list"></div>
+    <button class="btn btn-ghost" type="button" id="who-cancel" hidden>Annuler</button>
+  </div>
+</dialog>
+
+<!-- Day details -->
+<dialog id="day-dialog" aria-labelledby="day-title">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2 id="day-title"></h2>
+      <button class="icon-btn" type="button" data-close aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="meter" id="day-meter"></div>
+    <ul class="stays" id="day-stays"></ul>
+    <p class="free" id="day-free" hidden>Le chalet est libre ce jour-là.</p>
+    <div class="sheet-actions">
+      <button class="btn btn-primary" type="button" id="day-book"></button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Booking form -->
+<dialog id="form-dialog" aria-labelledby="form-title">
+  <form class="sheet" id="booking-form" novalidate>
+    <div class="sheet-head">
+      <h2 id="form-title">Nouveau séjour</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="field">
+      <label for="f-title">Nom de l’événement</label>
+      <input type="text" id="f-title" maxlength="80" placeholder="Anniversaire Louna, Grande première…" autocomplete="off">
+    </div>
+    <div class="field">
+      <span class="field-label" id="f-who-label">Qui réserve ?</span>
+      <div class="who-pick" id="f-who" role="radiogroup" aria-labelledby="f-who-label"></div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="f-start">Arrivée</label>
+        <input type="date" id="f-start" required>
+      </div>
+      <div class="field">
+        <label for="f-end">Départ</label>
+        <input type="date" id="f-end" required>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label" id="f-people-label">Nombre de personnes</span>
+      <div class="stepper-row">
+        <div class="stepper" role="group" aria-labelledby="f-people-label">
+          <button type="button" id="f-minus" aria-label="Une personne de moins">−</button>
+          <output id="f-people" aria-live="polite">2</output>
+          <button type="button" id="f-plus" aria-label="Une personne de plus">+</button>
+        </div>
+        <span class="hint" id="f-capacity"></span>
+      </div>
+    </div>
+    <div class="field">
+      <label for="f-guests">Invités <span style="font-weight:400">(facultatif)</span></label>
+      <input type="text" id="f-guests" maxlength="200" placeholder="Paul, Marie…" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="f-note">Note <span style="font-weight:400">(facultatif)</span></label>
+      <textarea id="f-note" maxlength="500" placeholder="Arrivée tard vendredi, on vient avec le chien…"></textarea>
+    </div>
+    <div class="error" id="f-error" role="alert" hidden></div>
+    <div class="confirm" id="f-confirm" hidden>
+      <p>Supprimer ce séjour ? Il disparaîtra pour toute la famille.</p>
+      <div class="sheet-actions">
+        <button class="btn" type="button" id="f-confirm-no">Non, garder</button>
+        <button class="btn btn-danger" type="button" id="f-confirm-yes">Oui, supprimer</button>
+      </div>
+    </div>
+    <div class="sheet-actions" id="f-actions">
+      <button class="btn btn-ghost grow" type="button" id="f-delete" hidden>Supprimer</button>
+      <button class="btn" type="button" data-close>Annuler</button>
+      <button class="btn btn-primary" type="submit" id="f-save">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+  document.documentElement.lang = "fr";
+
+  var MAX = 14;
+  var MAX_NIGHTS = 92;
+  var LANES = 3;
+  var DAY_MS = 86400000;
+  var PEOPLE = [
+    { id: "parents", label: "Les parents", stay: "Séjour des parents" },
+    { id: "louna", label: "Louna", stay: "Séjour de Louna" },
+    { id: "victor", label: "Victor", stay: "Séjour de Victor" }
+  ];
+  var PERSON = {};
+  PEOPLE.forEach(function (p) { PERSON[p.id] = p; });
+  var ME_KEY = "calendrier-st-marcel.me";
+  var PERSON_ICON = '<svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="2.6" r="2.1"/><path d="M1 10c0-2.6 1.8-4.2 4-4.2S9 7.4 9 10z"/></svg>';
+
+  // ---------- dates (all as whole day numbers, UTC based) ----------
+  function toNum(s) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || "");
+    if (!m) return NaN;
+    return Math.round(Date.UTC(+m[1], +m[2] - 1, +m[3]) / DAY_MS);
+  }
+  function toStr(n) { return new Date(n * DAY_MS).toISOString().slice(0, 10); }
+  function todayNum() { var d = new Date(); return Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY_MS); }
+  function weekday(n) { return (new Date(n * DAY_MS).getUTCDay() + 6) % 7; } // 0 = lundi
+  function fmt(n, opts) { return new Intl.DateTimeFormat("fr-FR", Object.assign({ timeZone: "UTC" }, opts)).format(new Date(n * DAY_MS)); }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function shortDate(n) { return fmt(n, { weekday: "short", day: "numeric", month: "short" }); }
+  function longDate(n) { return cap(fmt(n, { weekday: "long", day: "numeric", month: "long", year: "numeric" })); }
+  function nightsLabel(k) { return k + (k > 1 ? " nuits" : " nuit"); }
+
+  // ---------- state ----------
+  var state = {
+    bookings: [],
+    me: null,
+    db: null,
+    dbReady: false,
+    view: (function () { var d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; })(),
+    openDay: null,
+    editing: null,
+    people: 2,
+    who: null,
+    saving: false
+  };
+
+  function readMe() { try { var v = localStorage.getItem(ME_KEY); return PERSON[v] ? v : null; } catch (e) { return null; } }
+  function writeMe(v) { try { localStorage.setItem(ME_KEY, v); } catch (e) { /* ok */ } }
+
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function stayName(b) { return b.title || (PERSON[b.who] ? PERSON[b.who].stay : "Séjour"); }
+
+  // ---------- capacity ----------
+  function nightLoad(n, excludeId) {
+    var sum = 0;
+    state.bookings.forEach(function (b) { if (b.id !== excludeId && b.s <= n && n < b.e) sum += b.people; });
+    return sum;
+  }
+  function checkCapacity(s, e, people, excludeId) {
+    var over = [], minFree = MAX;
+    for (var n = s; n < e; n++) {
+      var used = nightLoad(n, excludeId);
+      minFree = Math.min(minFree, MAX - used);
+      if (used + people > MAX) over.push({ n: n, used: used });
+    }
+    return { over: over, minFree: minFree };
+  }
+
+  // ---------- data ----------
+  function clean(doc) {
+    var d = doc.data() || {};
+    var s = toNum(d.start), e = toNum(d.end);
+    if (!isFinite(s) || !isFinite(e) || e <= s) return null;
+    var people = Math.max(1, Math.min(MAX, Math.round(Number(d.people) || 1)));
+    return {
+      id: doc.id, s: s, e: e, start: d.start, end: d.end, people: people,
+      who: PERSON[d.who] ? d.who : "parents",
+      title: typeof d.title === "string" ? d.title.trim().slice(0, 80) : "",
+      guests: typeof d.guests === "string" ? d.guests.trim().slice(0, 200) : "",
+      note: typeof d.note === "string" ? d.note.trim().slice(0, 500) : "",
+      createdAt: d.createdAt || null, createdBy: d.createdBy || null
+    };
+  }
+
+  function showBanner(msg) { var b = $("banner"); b.textContent = msg || ""; b.hidden = !msg; }
+
+  var toastTimer;
+  function toast(msg) {
+    var t = $("toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, 2600);
+  }
+
+  // ---------- calendar ----------
+  function renderMonth() {
+    var y = state.view.y, m = state.view.m;
+    var first = Math.round(Date.UTC(y, m, 1) / DAY_MS);
+    var last = Math.round(Date.UTC(y, m + 1, 0) / DAY_MS);
+    var gridStart = first - weekday(first);
+    var weeksCount = Math.ceil((last - gridStart + 1) / 7);
+    var gridEnd = gridStart + weeksCount * 7 - 1;
+    var today = todayNum();
+
+    $("month-title").textContent = cap(fmt(first, { month: "long", year: "numeric" }));
+    var tv = new Date();
+    $("today-btn").hidden = (tv.getFullYear() === y && tv.getMonth() === m);
+
+    // lanes: a stay occupies its lane from arrival-noon to departure-noon,
+    // so back-to-back stays can share a lane.
+    var visible = state.bookings.filter(function (b) { return b.e >= gridStart && b.s <= gridEnd; })
+      .sort(function (a, b) { return a.s - b.s || (b.e - b.s) - (a.e - a.s) || (a.id < b.id ? -1 : 1); });
+    var laneEnds = [];
+    var placed = visible.map(function (b) {
+      var lane = 0;
+      while (lane < laneEnds.length && laneEnds[lane] > b.s) lane++;
+      laneEnds[lane] = b.e;
+      return { b: b, lane: lane };
+    });
+
+    var weeks = $("weeks");
+    weeks.textContent = "";
+    var monthHasStays = false;
+
+    for (var w = 0; w < weeksCount; w++) {
+      var ws = gridStart + w * 7, we = ws + 6;
+      var row = el("div", "week");
+      var overflow = [0, 0, 0, 0, 0, 0, 0];
+      var bars = el("div", "bars");
+
+      placed.forEach(function (p) {
+        var b = p.b;
+        if (b.e < ws || b.s > we) return;
+        var segS = Math.max(b.s, ws), segE = Math.min(b.e, we);
+        if (p.lane >= LANES) {
+          for (var k = segS; k <= segE; k++) overflow[k - ws]++;
+          return;
+        }
+        var left = (segS - ws) + (segS === b.s ? 0.5 : 0);
+        var right = (segE - ws) + (segE === b.e ? 0.5 : 1);
+        if (right - left <= 0) return;
+        var bar = el("div", "bar c-" + b.who + (segS === b.s ? " s" : "") + (segE === b.e ? " e" : ""), stayName(b));
+        bar.style.left = "calc(" + left + " * 100% / 7 + 1px)";
+        bar.style.width = "calc(" + (right - left) + " * 100% / 7 - 2px)";
+        bar.style.top = "calc(var(--bar-top) + " + p.lane + " * (var(--bar-h) + var(--bar-gap)))";
+        bars.appendChild(bar);
+      });
+
+      for (var i = 0; i < 7; i++) {
+        var n = ws + i;
+        var inMonth = n >= first && n <= last;
+        var cell = el("button", "day" + (inMonth ? "" : " out") + (n < today ? " past" : "") + (n === today ? " today" : ""));
+        cell.type = "button";
+        cell.dataset.day = String(n);
+        cell.appendChild(el("span", "num", String(new Date(n * DAY_MS).getUTCDate())));
+        var load = nightLoad(n, null);
+        var present = state.bookings.filter(function (b) { return b.s <= n && n <= b.e; });
+        if (inMonth && present.length) monthHasStays = true;
+        if (load > 0) {
+          var l = el("span", "load" + (load >= MAX ? " full" : load >= 11 ? " busy" : ""));
+          l.innerHTML = PERSON_ICON;
+          l.appendChild(document.createTextNode(String(load)));
+          cell.appendChild(l);
+        }
+        if (overflow[i] > 0) cell.appendChild(el("span", "more", "+" + overflow[i]));
+        var label = longDate(n) + (load ? ", " + load + (load > 1 ? " personnes" : " personne") + " cette nuit" : ", libre") +
+          (present.length ? ", " + present.map(stayName).join(", ") : "");
+        cell.setAttribute("aria-label", label);
+        row.appendChild(cell);
+      }
+      row.appendChild(bars);
+      weeks.appendChild(row);
+    }
+    $("empty-hint").hidden = !state.dbReady || monthHasStays;
+  }
+
+  function shiftMonth(delta) {
+    var d = new Date(state.view.y, state.view.m + delta, 1);
+    state.view = { y: d.getFullYear(), m: d.getMonth() };
+    renderMonth();
+  }
+
+  // ---------- day sheet ----------
+  function openDay(n) {
+    state.openDay = n;
+    renderDay();
+    var d = $("day-dialog");
+    if (!d.open) d.showModal();
+  }
+  function renderDay() {
+    var n = state.openDay;
+    if (n == null) return;
+    $("day-title").textContent = longDate(n);
+    var load = nightLoad(n, null);
+    var meter = $("day-meter");
+    meter.textContent = "";
+    var r = el("div", "meter-row");
+    r.appendChild(el("span", null, "Cette nuit au chalet"));
+    r.appendChild(el("strong", null, load + " / " + MAX + (load >= MAX ? " · complet" : "")));
+    var track = el("div", "meter-track");
+    var fill = el("div", "meter-fill" + (load >= MAX ? " full" : load >= 11 ? " busy" : ""));
+    fill.style.width = Math.min(100, load / MAX * 100) + "%";
+    track.appendChild(fill);
+    meter.appendChild(r); meter.appendChild(track);
+
+    var list = $("day-stays");
+    list.textContent = "";
+    var present = state.bookings.filter(function (b) { return b.s <= n && n <= b.e; })
+      .sort(function (a, b) { return a.s - b.s; });
+    present.forEach(function (b) {
+      var li = el("li", "stay c-" + b.who);
+      var top = el("div", "stay-top");
+      top.appendChild(el("h3", null, stayName(b)));
+      var edit = el("button", "btn", "Modifier");
+      edit.type = "button";
+      edit.addEventListener("click", function () { openForm(b, null); });
+      top.appendChild(edit);
+      li.appendChild(top);
+      var tag = b.s === n ? " · arrivée ce jour" : b.e === n ? " · départ ce jour" : "";
+      li.appendChild(el("div", "meta", PERSON[b.who].label + " · du " + shortDate(b.s) + " au " + shortDate(b.e) + " (" + nightsLabel(b.e - b.s) + ")" + tag));
+      li.appendChild(el("div", "meta", b.people + (b.people > 1 ? " personnes" : " personne")));
+      if (b.guests) { var g = el("div", "extra"); g.appendChild(el("b", null, "Avec : ")); g.appendChild(document.createTextNode(b.guests)); li.appendChild(g); }
+      if (b.note) { var t = el("div", "extra"); t.appendChild(el("b", null, "Note : ")); t.appendChild(document.createTextNode(b.note)); li.appendChild(t); }
+      list.appendChild(li);
+    });
+    list.hidden = present.length === 0;
+    $("day-free").hidden = present.length > 0;
+    $("day-book").textContent = load >= MAX ? "Complet cette nuit" : "Réserver à partir du " + fmt(n, { day: "numeric", month: "short" });
+    $("day-book").disabled = load >= MAX;
+  }
+
+  // ---------- form ----------
+  function buildWhoPick() {
+    var box = $("f-who");
+    PEOPLE.forEach(function (p) {
+      var lab = el("label", "c-" + p.id);
+      var input = el("input");
+      input.type = "radio"; input.name = "who"; input.value = p.id; input.id = "f-who-" + p.id;
+      input.addEventListener("change", function () { state.who = p.id; });
+      var span = el("span");
+      span.appendChild(el("span", "dot"));
+      span.appendChild(document.createTextNode(p.label));
+      lab.appendChild(input); lab.appendChild(span);
+      box.appendChild(lab);
+    });
+  }
+
+  function setPeople(v) {
+    state.people = Math.max(1, Math.min(MAX, v));
+    $("f-people").textContent = String(state.people);
+    $("f-minus").disabled = state.people <= 1;
+    $("f-plus").disabled = state.people >= MAX;
+    updateCapacityHint();
+  }
+
+  function formDates() { return { s: toNum($("f-start").value), e: toNum($("f-end").value) }; }
+
+  function updateCapacityHint() {
+    var h = $("f-capacity");
+    var d = formDates();
+    h.className = "hint";
+    if (!isFinite(d.s) || !isFinite(d.e) || d.e <= d.s || d.e - d.s > MAX_NIGHTS) { h.textContent = ""; return; }
+    var c = checkCapacity(d.s, d.e, state.people, state.editing ? state.editing.id : null);
+    if (c.over.length) { h.textContent = "Pas assez de place sur ces dates"; return; }
+    h.className = "hint ok";
+    h.textContent = c.minFree >= MAX ? "Le chalet est libre sur ces dates" : "Encore " + (c.minFree - state.people) + " place" + (c.minFree - state.people > 1 ? "s" : "") + " libres sur ces dates";
+    if (c.minFree - state.people <= 0) h.textContent = "Le chalet sera complet avec vous";
+  }
+
+  function showError(msg) { var e = $("f-error"); e.textContent = msg || ""; e.hidden = !msg; }
+
+  function openForm(booking, startDay) {
+    state.editing = booking;
+    showError("");
+    $("f-confirm").hidden = true;
+    $("f-actions").hidden = false;
+    $("form-title").textContent = booking ? "Modifier le séjour" : "Nouveau séjour";
+    $("f-delete").hidden = !booking;
+    var s, e;
+    if (booking) { s = booking.s; e = booking.e; }
+    else {
+      s = startDay != null ? startDay : todayNum();
+      e = s + (weekday(s) === 4 ? 2 : 1); // un vendredi : jusqu'au dimanche
+    }
+    $("f-title").value = booking ? booking.title : "";
+    $("f-start").value = toStr(s);
+    $("f-end").value = toStr(e);
+    $("f-guests").value = booking ? booking.guests : "";
+    $("f-note").value = booking ? booking.note : "";
+    state.who = booking ? booking.who : (state.me || "parents");
+    $("f-who-" + state.who).checked = true;
+    setPeople(booking ? booking.people : 2);
+    if ($("day-dialog").open) $("day-dialog").close();
+    var fd = $("form-dialog");
+    if (!fd.open) fd.showModal();
+    if (!booking) setTimeout(function () { try { $("f-title").focus(); } catch (x) {} }, 30);
+  }
+
+  function writeErrorMessage(err) {
+    var code = err && err.code;
+    if (code === "invalid_argument") return "Vous n’avez pas le droit de modifier le calendrier. Demandez à Louna de vous inviter comme « Éditeur ».";
+    if (code === "quota_exceeded") return "Le calendrier a atteint sa taille maximale. Supprimez d’anciens séjours puis réessayez.";
+    if (code === "resource_exhausted") return "Trop de modifications d’un coup. Attendez quelques secondes puis réessayez.";
+    return "Le séjour n’a pas pu être enregistré. Vérifiez votre connexion et réessayez.";
+  }
+
+  function withRetry(fn) {
+    return fn().catch(function (err) {
+      if (err && err.code === "unavailable") {
+        return new Promise(function (res) { setTimeout(res, 600 + Math.random() * 600); }).then(fn);
+      }
+      throw err;
+    });
+  }
+
+  function onSubmit(ev) {
+    ev.preventDefault();
+    if (state.saving) return;
+    showError("");
+    var d = formDates();
+    if (!isFinite(d.s) || !isFinite(d.e)) return showError("Indiquez une date d’arrivée et une date de départ.");
+    if (d.e <= d.s) return showError("La date de départ doit être après la date d’arrivée.");
+    if (d.e - d.s > MAX_NIGHTS) return showError("Un séjour peut durer au maximum 3 mois.");
+    var c = checkCapacity(d.s, d.e, state.people, state.editing ? state.editing.id : null);
+    if (c.over.length) {
+      var list = c.over.slice(0, 4).map(function (o) {
+        var free = MAX - o.used;
+        return "nuit du " + fmt(o.n, { weekday: "short", day: "numeric", month: "short" }) + " (" + (free <= 0 ? "complet" : free + " place" + (free > 1 ? "s libres" : " libre")) + ")";
+      }).join(", ");
+      return showError("Pas assez de place pour " + state.people + " personnes : " + list + (c.over.length > 4 ? "…" : "") + ". Le chalet accueille " + MAX + " personnes au maximum.");
+    }
+    if (!state.db) return showError("Les réservations ne sont pas disponibles ici. Ouvrez le calendrier depuis son lien Claude.");
+
+    var now = new Date().toISOString();
+    var data = {
+      title: $("f-title").value.trim().slice(0, 80),
+      who: state.who,
+      start: toStr(d.s),
+      end: toStr(d.e),
+      people: state.people,
+      guests: $("f-guests").value.trim().slice(0, 200),
+      note: $("f-note").value.trim().slice(0, 500),
+      updatedAt: now,
+      updatedBy: state.me || state.who,
+      createdAt: state.editing && state.editing.createdAt ? state.editing.createdAt : now,
+      createdBy: state.editing && state.editing.createdBy ? state.editing.createdBy : (state.me || state.who)
+    };
+    var ref = state.editing ? state.db.doc("bookings/" + state.editing.id) : state.db.collection("bookings").doc();
+    var wasEditing = !!state.editing;
+    state.saving = true;
+    $("f-save").disabled = true;
+    $("f-save").textContent = "Enregistrement…";
+    withRetry(function () { return ref.set(data); }).then(function () {
+      $("form-dialog").close();
+      toast(wasEditing ? "Séjour modifié" : "Séjour réservé");
+      var ds = new Date(d.s * DAY_MS);
+      state.view = { y: ds.getUTCFullYear(), m: ds.getUTCMonth() };
+      renderMonth();
+    }).catch(function (err) {
+      showError(writeErrorMessage(err));
+    }).then(function () {
+      state.saving = false;
+      $("f-save").disabled = false;
+      $("f-save").textContent = "Enregistrer";
+    });
+  }
+
+  function onDelete() {
+    if (!state.editing || !state.db) return;
+    var btn = $("f-confirm-yes");
+    btn.disabled = true;
+    var ref = state.db.doc("bookings/" + state.editing.id);
+    withRetry(function () { return ref.delete(); }).then(function () {
+      $("form-dialog").close();
+      toast("Séjour supprimé");
+    }).catch(function (err) {
+      $("f-confirm").hidden = true; $("f-actions").hidden = false;
+      showError(err && err.code === "invalid_argument" ? writeErrorMessage(err) : "Le séjour n’a pas pu être supprimé. Réessayez.");
+    }).then(function () { btn.disabled = false; });
+  }
+
+  // ---------- who am I ----------
+  function renderMe() {
+    var chip = $("me-chip");
+    if (!state.me) { chip.hidden = true; return; }
+    chip.hidden = false;
+    chip.className = "me-chip c-" + state.me;
+    $("me-name").textContent = PERSON[state.me].label;
+    chip.setAttribute("aria-label", "Vous êtes " + PERSON[state.me].label + ". Changer");
+  }
+  function openWho(canCancel) {
+    $("who-cancel").hidden = !canCancel;
+    var d = $("who-dialog");
+    d.dataset.required = canCancel ? "" : "1";
+    if (!d.open) d.showModal();
+  }
+  function buildWhoList() {
+    var box = $("who-list");
+    PEOPLE.forEach(function (p) {
+      var b = el("button", "c-" + p.id);
+      b.type = "button";
+      b.appendChild(el("span", "dot"));
+      b.appendChild(document.createTextNode(p.label));
+      b.addEventListener("click", function () {
+        state.me = p.id; writeMe(p.id); renderMe();
+        $("who-dialog").close();
+      });
+      box.appendChild(b);
+    });
+  }
+
+  // ---------- wiring ----------
+  function wire() {
+    buildWhoList();
+    buildWhoPick();
+    $("prev-btn").addEventListener("click", function () { shiftMonth(-1); });
+    $("next-btn").addEventListener("click", function () { shiftMonth(1); });
+    $("today-btn").addEventListener("click", function () { var d = new Date(); state.view = { y: d.getFullYear(), m: d.getMonth() }; renderMonth(); });
+    $("book-btn").addEventListener("click", function () { openForm(null, null); });
+    $("weeks").addEventListener("click", function (ev) {
+      var cell = ev.target.closest(".day");
+      if (cell) openDay(Number(cell.dataset.day));
+    });
+    $("day-book").addEventListener("click", function () { openForm(null, state.openDay); });
+    $("me-chip").addEventListener("click", function () { openWho(true); });
+    $("who-cancel").addEventListener("click", function () { $("who-dialog").close(); });
+    $("who-dialog").addEventListener("cancel", function (ev) { if ($("who-dialog").dataset.required) ev.preventDefault(); });
+    $("day-dialog").addEventListener("close", function () { state.openDay = null; });
+    $("form-dialog").addEventListener("close", function () { state.editing = null; });
+    document.querySelectorAll("[data-close]").forEach(function (b) {
+      b.addEventListener("click", function () { b.closest("dialog").close(); });
+    });
+    document.querySelectorAll("dialog").forEach(function (d) {
+      d.addEventListener("click", function (ev) { if (ev.target === d && !d.dataset.required) d.close(); });
+    });
+    $("f-minus").addEventListener("click", function () { setPeople(state.people - 1); });
+    $("f-plus").addEventListener("click", function () { setPeople(state.people + 1); });
+    $("f-start").addEventListener("change", function () {
+      var d = formDates();
+      if (isFinite(d.s) && (!isFinite(d.e) || d.e <= d.s)) $("f-end").value = toStr(d.s + (weekday(d.s) === 4 ? 2 : 1));
+      updateCapacityHint();
+    });
+    $("f-end").addEventListener("change", updateCapacityHint);
+    $("booking-form").addEventListener("submit", onSubmit);
+    $("f-delete").addEventListener("click", function () { $("f-confirm").hidden = false; $("f-actions").hidden = true; });
+    $("f-confirm-no").addEventListener("click", function () { $("f-confirm").hidden = true; $("f-actions").hidden = false; });
+    $("f-confirm-yes").addEventListener("click", onDelete);
+  }
+
+  function connect() {
+    showBanner("Chargement des réservations…");
+    var c = window.claude;
+    if (!c || typeof c.use !== "function") {
+      showBanner("Les réservations ne sont pas disponibles ici. Ouvrez le calendrier depuis son lien Claude.");
+      return;
+    }
+    c.use("db").then(function (db) {
+      if (!db) {
+        showBanner("Les réservations ne sont pas disponibles. Connectez-vous à votre compte Claude puis rouvrez le lien.");
+        return;
+      }
+      state.db = db;
+      db.collection("bookings").onSnapshot(function (snap) {
+        state.bookings = snap.docs.map(clean).filter(Boolean);
+        state.dbReady = true;
+        showBanner("");
+        renderMonth();
+        if (state.openDay != null) renderDay();
+        if ($("form-dialog").open) updateCapacityHint();
+      }, function () {
+        showBanner("La connexion au calendrier a été interrompue. Rechargez la page.");
+      });
+    }, function () {
+      showBanner("Les réservations ne sont pas disponibles. Rechargez la page.");
+    });
+  }
+
+  wire();
+  state.me = readMe();
+  renderMe();
+  renderMonth();
+  connect();
+  if (!state.me) openWho(false);
+})();
+</script>
