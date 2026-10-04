@@ -10,7 +10,7 @@ service cloud.firestore {
       return d.keys().hasOnly(['title', 'who', 'start', 'end', 'people', 'guests', 'note',
                                'createdAt', 'createdBy', 'updatedAt', 'updatedBy'])
         && d.keys().hasAll(['who', 'start', 'end', 'people'])
-        && d.who in ['parents', 'louna', 'victor']
+        && d.who in ['parents', 'louna', 'victor', 'autre']
         && validDate(d.start) && validDate(d.end) && d.end > d.start
         && d.people is int && d.people >= 1 && d.people <= 14
         && d.get('title', '') is string && d.get('title', '').size() <= 80

@@ -34,6 +34,7 @@
   --p-parents: #A0612A;
   --p-louna: #B23A4B;
   --p-victor: #2C6896;
+  --p-autre: #66678A;
   --bar-ink: #FFFFFF;
   --full: #B3261E;
   --full-bg: #FBE7E4;
@@ -49,7 +50,7 @@
     --snow: #111814; --surface: #19221D; --surface-2: #202B25; --ink: #E6ECE8; --muted: #9AA9A1; --line: #2B3731;
     --pine: #86C0A1; --pine-ink: #0F1A14;
     --ridge-far: #1C2721; --ridge-mid: #22352B; --ridge-near: #2D4A3B; --ridge-snow: #4A5E53;
-    --p-parents: #D49152; --p-louna: #E46B7C; --p-victor: #64A3D6; --bar-ink: #10170F;
+    --p-parents: #D49152; --p-louna: #E46B7C; --p-victor: #64A3D6; --p-autre: #A9AACB; --bar-ink: #10170F;
     --full: #F28B82; --full-bg: #3B1F1D; --busy: #E8B860; --busy-bg: #33280F; --focus: #64A3D6;
     --shadow: 0 10px 30px rgba(0, 0, 0, .5);
     color-scheme: dark;
@@ -59,7 +60,7 @@
   --snow: #111814; --surface: #19221D; --surface-2: #202B25; --ink: #E6ECE8; --muted: #9AA9A1; --line: #2B3731;
   --pine: #86C0A1; --pine-ink: #0F1A14;
   --ridge-far: #1C2721; --ridge-mid: #22352B; --ridge-near: #2D4A3B; --ridge-snow: #4A5E53;
-  --p-parents: #D49152; --p-louna: #E46B7C; --p-victor: #64A3D6; --bar-ink: #10170F;
+  --p-parents: #D49152; --p-louna: #E46B7C; --p-victor: #64A3D6; --p-autre: #A9AACB; --bar-ink: #10170F;
   --full: #F28B82; --full-bg: #3B1F1D; --busy: #E8B860; --busy-bg: #33280F; --focus: #64A3D6;
   --shadow: 0 10px 30px rgba(0, 0, 0, .5);
   color-scheme: dark;
@@ -109,6 +110,7 @@ button { cursor: pointer; }
 .c-parents { --pc: var(--p-parents); }
 .c-louna { --pc: var(--p-louna); }
 .c-victor { --pc: var(--p-victor); }
+.c-autre { --pc: var(--p-autre); }
 .dot { background: var(--pc, var(--muted)); }
 
 /* Toolbar */
@@ -321,6 +323,7 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
       <span class="c-parents"><span class="dot"></span>Les parents</span>
       <span class="c-louna"><span class="dot"></span>Louna</span>
       <span class="c-victor"><span class="dot"></span>Victor</span>
+      <span class="c-autre"><span class="dot"></span>Autre</span>
       <span class="cap">Le chiffre sur un jour = personnes présentes cette nuit-là (max. 14)</span>
     </div>
   </main>
@@ -440,8 +443,12 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
     { id: "louna", label: "Louna", stay: "Séjour de Louna" },
     { id: "victor", label: "Victor", stay: "Séjour de Victor" }
   ];
+  // "Autre": a stay booked for someone outside the family (e.g. a cousin and friends)
+  var OTHER = { id: "autre", label: "Autre", stay: "Autre séjour" };
+  var BOOKERS = PEOPLE.concat([OTHER]);
   var PERSON = {};
-  PEOPLE.forEach(function (p) { PERSON[p.id] = p; });
+  BOOKERS.forEach(function (p) { PERSON[p.id] = p; });
+  function isFamily(id) { return !!PERSON[id] && id !== OTHER.id; }
   var ME_KEY = "calendrier-st-marcel.me";
   var PERSON_ICON = '<svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="2.6" r="2.1"/><path d="M1 10c0-2.6 1.8-4.2 4-4.2S9 7.4 9 10z"/></svg>';
 
@@ -474,7 +481,7 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
     saving: false
   };
 
-  function readMe() { try { var v = localStorage.getItem(ME_KEY); return PERSON[v] ? v : null; } catch (e) { return null; } }
+  function readMe() { try { var v = localStorage.getItem(ME_KEY); return isFamily(v) ? v : null; } catch (e) { return null; } }
   function writeMe(v) { try { localStorage.setItem(ME_KEY, v); } catch (e) { /* ok */ } }
 
   var $ = function (id) { return document.getElementById(id); };
@@ -647,7 +654,8 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
       top.appendChild(edit);
       li.appendChild(top);
       var tag = b.s === n ? " · arrivée ce jour" : b.e === n ? " · départ ce jour" : "";
-      li.appendChild(el("div", "meta", PERSON[b.who].label + " · du " + shortDate(b.s) + " au " + shortDate(b.e) + " (" + nightsLabel(b.e - b.s) + ")" + tag));
+      var whoLabel = b.who === OTHER.id && isFamily(b.createdBy) ? "Autre, réservé par " + PERSON[b.createdBy].label : PERSON[b.who].label;
+      li.appendChild(el("div", "meta", whoLabel + " · du " + shortDate(b.s) + " au " + shortDate(b.e) + " (" + nightsLabel(b.e - b.s) + ")" + tag));
       li.appendChild(el("div", "meta", b.people + (b.people > 1 ? " personnes" : " personne")));
       if (b.guests) { var g = el("div", "extra"); g.appendChild(el("b", null, "Avec : ")); g.appendChild(document.createTextNode(b.guests)); li.appendChild(g); }
       if (b.note) { var t = el("div", "extra"); t.appendChild(el("b", null, "Note : ")); t.appendChild(document.createTextNode(b.note)); li.appendChild(t); }
@@ -662,17 +670,21 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
   // ---------- form ----------
   function buildWhoPick() {
     var box = $("f-who");
-    PEOPLE.forEach(function (p) {
+    BOOKERS.forEach(function (p) {
       var lab = el("label", "c-" + p.id);
       var input = el("input");
       input.type = "radio"; input.name = "who"; input.value = p.id; input.id = "f-who-" + p.id;
-      input.addEventListener("change", function () { state.who = p.id; });
+      input.addEventListener("change", function () { state.who = p.id; updateTitlePlaceholder(); });
       var span = el("span");
       span.appendChild(el("span", "dot"));
       span.appendChild(document.createTextNode(p.label));
       lab.appendChild(input); lab.appendChild(span);
       box.appendChild(lab);
     });
+  }
+
+  function updateTitlePlaceholder() {
+    $("f-title").placeholder = state.who === OTHER.id ? "Semaine de la cousine et ses amis…" : "Anniversaire Louna, Grande première…";
   }
 
   function setPeople(v) {
@@ -719,6 +731,7 @@ form.sheet label, .field-label { font-size: 13px; font-weight: 600; color: var(-
     $("f-note").value = booking ? booking.note : "";
     state.who = booking ? booking.who : (state.me || "parents");
     $("f-who-" + state.who).checked = true;
+    updateTitlePlaceholder();
     setPeople(booking ? booking.people : 2);
     if ($("day-dialog").open) $("day-dialog").close();
     var fd = $("form-dialog");
